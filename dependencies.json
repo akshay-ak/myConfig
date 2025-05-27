@@ -1,0 +1,7 @@
+[
+  {
+    "id": "30000-3767",
+    "presentationText": "Does this policy include vehicles of other states?",
+    "visibleIf": "(TP - Filing Eligibility Codes:30000_1866 C TC) AND ((Policy #30000_160 IA) OR ((Policy #30000_160 IP) AND (Initial TCAP Helper :30000_4118 <> N))) AND (Transaction type:30000_10 = NB) AND (Effective date:30000_34 >= 09/15/2024))"
+  }
+]
