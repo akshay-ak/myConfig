@@ -1,20 +1,31 @@
-import json
-import xml.etree.ElementTree as ET
-from fastapi import FastAPI, File, UploadFile, Form
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+import xml.etree.ElementTree as ET
+import json
 from groq import Groq
 
 # Initialize Groq client
-client = Groq(api_key="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")  # Replace with env var or config for security
+client = Groq(api_key="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")
 
 app = FastAPI(title="myConfig API")
 
-@app.get("/health")
-def health_check():
-    return {"status": "ok"}
+# Optional: CORS middleware
+from fastapi.middleware.cors import CORSMiddleware
 
-# --- Helper functions ---
-def parse_context_xml(file_data: bytes):
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# --- Request Model ---
+class UserQuestion(BaseModel):
+    user_question: str
+
+# --- Load files from local directory ---
+def load_context_xml(file_path):
     def recurse(node):
         children = list(node)
         if children:
@@ -22,8 +33,12 @@ def parse_context_xml(file_data: bytes):
         else:
             return node.text.strip() if node.text else None
 
-    root = ET.fromstring(file_data)
-    return {root.tag: recurse(root)}
+    tree = ET.parse(file_path)
+    return {tree.getroot().tag: recurse(tree.getroot())}
+
+def load_ui_rules(file_path):
+    with open(file_path, 'r') as f:
+        return json.load(f)
 
 def build_prompt(context, ui_rules, user_question):
     return f"""
@@ -46,6 +61,7 @@ def ask_llm(prompt):
         model="llama-3.1-8b-instant",
         messages=[
             {"role": "system", "content": """You evaluate UI element visibility based on context and rules.
+             You evaluate UI element visibility based on context and rules.
 
                 Your role:
                 - Answer only based on the question asked.
@@ -76,26 +92,19 @@ def ask_llm(prompt):
     )
     return response.choices[0].message.content
 
-
-# --- API Models ---
-class VisibilityRequest(BaseModel):
-    user_question: str
-    ui_rules: dict
-
+# --- API Endpoint ---
 @app.post("/evaluate-visibility/")
-async def evaluate_visibility(user_question: str = Form(...),
-                              context_file: UploadFile = File(...),
-                              ui_rules_file: UploadFile = File(...)):
+def evaluate_visibility(payload: UserQuestion):
     try:
-        context_bytes = await context_file.read()
-        rules_bytes = await ui_rules_file.read()
-
-        context = parse_context_xml(context_bytes)
-        ui_rules = json.loads(rules_bytes.decode('utf-8'))
-
-        prompt = build_prompt(context, ui_rules, user_question)
+        context = load_context_xml("cdmXML.xml")
+        ui_rules = load_ui_rules("dependencies.json")
+        prompt = build_prompt(context, ui_rules, payload.user_question)
         answer = ask_llm(prompt)
-
         return {"response": answer}
     except Exception as e:
-        return {"error": str(e)}
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Health check
+@app.get("/health")
+def health():
+    return {"status": "ok"}
