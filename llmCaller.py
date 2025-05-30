@@ -1,40 +1,30 @@
 import json
 import xml.etree.ElementTree as ET
-import os
+from fastapi import FastAPI, File, UploadFile, Form
+from pydantic import BaseModel
 from groq import Groq
 
-client = Groq(
-    api_key="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"
-)
+# Initialize Groq client
+client = Groq(api_key="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")  # Replace with env var or config for security
 
-chat_completion = client.chat.completions.create(
-    messages=[
-        {
-            "role":"user",
-            "content": "Explain the importance of low latency LLMs. Responsd in just 1 line. Keep it simple"
-        }
-    ],
-    model="llama-3.3-70b-versatile"
-)
+app = FastAPI(title="myConfig API")
 
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
 
-# --- Load XML context data ---
-def load_context_xml(file_path):
+# --- Helper functions ---
+def parse_context_xml(file_data: bytes):
     def recurse(node):
         children = list(node)
         if children:
             return {child.tag: recurse(child) for child in children}
         else:
             return node.text.strip() if node.text else None
-    tree = ET.parse(file_path)
-    return {tree.getroot().tag: recurse(tree.getroot())}
 
-# --- Load UI element rules ---
-def load_ui_rules(file_path):
-    with open(file_path, 'r') as f:
-        return json.load(f)
+    root = ET.fromstring(file_data)
+    return {root.tag: recurse(root)}
 
-# --- Build prompt for LLM ---
 def build_prompt(context, ui_rules, user_question):
     return f"""
 You are a smart assistant that helps determine the visibility of UI elements based on rules and a user's context.
@@ -51,7 +41,6 @@ User's Question:
 Compare the context data with the visibility rules and explain which conditions are satisfied and which are not. Clearly state whether the element should be visible or not.
 """
 
-# --- Query OpenAI LLM ---
 def ask_llm(prompt):
     response = client.chat.completions.create(
         model="llama-3.1-8b-instant",
@@ -84,23 +73,29 @@ def ask_llm(prompt):
             {"role": "user", "content": prompt}
         ],
         temperature=0.2
-        
     )
     return response.choices[0].message.content
 
-# --- Main chat interface ---
-def chatbot(context_file, ui_rules_file):
-    context = load_context_xml(context_file)
-    ui_rules = load_ui_rules(ui_rules_file)
-    print("Type your question (or 'exit' to quit):")
-    while True:
-        question = input("You: ")
-        if question.lower() in ["exit", "quit"]:
-            break
-        prompt = build_prompt(context, ui_rules, question)
-        answer = ask_llm(prompt)
-        print("\nAssistant:", answer, "\n")
 
-# --- Run chatbot ---
-if __name__ == "__main__":
-    chatbot("cdmXML.xml", "dependencies.json")
+# --- API Models ---
+class VisibilityRequest(BaseModel):
+    user_question: str
+    ui_rules: dict
+
+@app.post("/evaluate-visibility/")
+async def evaluate_visibility(user_question: str = Form(...),
+                              context_file: UploadFile = File(...),
+                              ui_rules_file: UploadFile = File(...)):
+    try:
+        context_bytes = await context_file.read()
+        rules_bytes = await ui_rules_file.read()
+
+        context = parse_context_xml(context_bytes)
+        ui_rules = json.loads(rules_bytes.decode('utf-8'))
+
+        prompt = build_prompt(context, ui_rules, user_question)
+        answer = ask_llm(prompt)
+
+        return {"response": answer}
+    except Exception as e:
+        return {"error": str(e)}

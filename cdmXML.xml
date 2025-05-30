@@ -1,6 +1,11 @@
-<policy> 
-<policyEffectiveDate qtag="30000-34">05/20/2025</policyEffectiveDate> 
-<filingEligibilityCds qtag="30000-1866">TE/CF/MS/TC</filingEligibilityCds> 
-<policyNbr qtag="30000-160"/> 
-<transactionType qtag="30000-10">PC</transactionType> 
+<policy>
+<policyEffectiveDate qtag="30000-34">05/20/2025</policyEffectiveDate>
+<filingEligibilityCds qtag="30000-1866">TE/CF/MS/TC</filingEligibilityCds>
+<policyNbr qtag="30000-160"/>
+<transactionType qtag="30000-10">PC</transactionType>
+<travCmlAuPrdctInd qtag="30000-3782">Y</travCmlAuPrdctInd>
+<valetParkingInd qtag="30000-4456">Y</valetParkingInd>
+<programCdGvngLeg qtag="30000-225">RG7</programCdGvngLeg>
+<petTransportationSvcsPct qtag="30000-225">Y</petTransportationSvcsPct>
+<petTransportationSvcsInd qtag="30000-3303">Y</petTransportationSvcsInd>
 </policy>
