@@ -4,7 +4,7 @@
 <policyNbr qtag="30000-160"/>
 <transactionType qtag="30000-10">PC</transactionType>
 <travCmlAuPrdctInd qtag="30000-3782">Y</travCmlAuPrdctInd>
-<valetParkingInd qtag="30000-4456">Y</valetParkingInd>
+<valetParkingInd qtag="30000-4456">N</valetParkingInd>
 <programCdGvngLeg qtag="30000-225">RG7</programCdGvngLeg>
 <petTransportationSvcsPct qtag="30000-225">Y</petTransportationSvcsPct>
 <petTransportationSvcsInd qtag="30000-3303">Y</petTransportationSvcsInd>

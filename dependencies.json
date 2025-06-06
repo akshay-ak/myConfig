@@ -6,7 +6,7 @@
   },
   {
     "id": "30000-4456",
-     "presentationText": "Does this policy include vehicles of other states?",
-    "visibleIf": "(TP - Filing Eligibility Codes:30000_1866 C TC) AND ((Policy #30000_160 IA) OR ((Policy #30000_160 IP) AND (Initial TCAP Helper :30000_4118 <> N))) AND (Transaction type:30000_10 = NB) AND (Effective date:30000_34 >= 09/15/2024))"
+    "presentationText": "Is valet parking provided?",
+    "visibleIf": "(Iravelers Commerical Auto Product Indicator:30000_3782 = Y) AND (Program Code:30000_225 = RG7, R01, RG8, R02, RGG, X89, RGD, R03, 92D)"
   }
 ]
