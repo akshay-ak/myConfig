@@ -5,7 +5,7 @@ import json
 from groq import Groq
 
 # Initialize Groq client
-client = Groq(api_key="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")
+client = Groq(api_key="")
 
 app = FastAPI(title="myConfig API")
 
